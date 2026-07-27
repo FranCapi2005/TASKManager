@@ -1,59 +1,53 @@
-﻿# TASKManager
+# TASKManager
 
-TASKManager is a modern task management platform designed to centralize planning, collaboration, and execution in one scalable system. The project is currently being developed while exploring a new definitive stack, with a strong focus on maintainability, performance, security, and long-term growth.
+TASKManager is a modern task management platform designed to centralize planning, collaboration, and execution in one scalable system. The project is currently in development while I explore a more definitive technology stack, with a strong focus on maintainability, performance, security, and long-term growth.
 
-The proposed architecture combines a responsive frontend built with TailwindCSS and either React or Angular, depending on project complexity, with a robust backend based on Java Spring Boot and gRPC for reliable service communication. A second backend layer in TypeScript, Node.js, and Express.js adds flexibility for auxiliary services, integrations, and real-time features. For persistence and performance, the stack includes PostgreSQL, Redis, Prisma, and HikariCP.
+The main goal of this project is to build a stronger foundation for future web development by combining security, monitoring, control, accessibility, and scalability in a single architecture. TASKManager also serves as a learning and testing environment, with well-documented code and clear separation of responsibilities across the repository.
 
-TASKManager is also being designed with cloud-native deployment in mind. Docker and Kubernetes support containerization and orchestration, while Nginx, AWS, and Google Cloud provide infrastructure, routing, and scalability. Security is a core priority, with Spring Security, Keycloak, JWT, HTTPS, and rate limiting included to protect users and services.
+## Why a new stack?
 
-Additional capabilities such as Socket.io enable real-time interaction, and observability is strengthened through Prometheus, Grafana, the ELK Stack, and Sentry. Overall, TASKManager aims to become a secure, scalable, and high-performance productivity platform built on a carefully selected and future-proof technology stack.
+I am improving my technical skills to build better applications and achieve better performance in future projects. This stack is still under development and part of an ongoing learning process, but it represents the tools and practices I plan to use in more serious and scalable solutions.
 
+## Technologies
 
-## Why new Stack?
+### Frontend
+- TailwindCSS
+- React or Angular, depending on the project size
+- Alert system
 
-I imporved the stack of skills to achieve a better performance, it should be clarified that this stack is in development and learning at the moment but here you can see an example of the tools that are used.
+### Backend
+- Java with Spring Boot
+- gRPC
 
-The main achievement is will have the better stack of skills for develop a website. Including security, monitoring, control, accesibility, and other factors. In fact this test app will be fully included of comments for understand the sections and the specific access of data that use the repository; Looking at the side of the tools will be used:
+### Secondary Backend
+- TypeScript
+- Node.js
+- Express.js
 
-FrontEnd:
-  * TailwindCSS
-  * React/Angular (Depending on the magnitude of the project)
-  * Alert Swing
+### Databases
+- PostgreSQL
+- Redis
+- Prisma
+- HikariCP
 
-BackEnd: 
-  * Java with Spring Boot
-  * GRPc
+### Cloud & DevOps
+- Docker
+- Kubernetes
+- Nginx
+- AWS or Google Cloud
 
-Second BackEnd:
-  * TypeScript
-  * Node.js
-  * Express.js
+### Security
+- Spring Security
+- Keycloak
+- JWT
+- HTTPS
+- Rate limiting
 
-DataBases:
-  * PostgreSQL
-  * Redis
-  * PRISMA
-  * HikariCP
+### Real-time
+- Socket.io
 
-Cloud & DevOps:
-  * Docker
-  * Kubernetes
-  * Nginx
-  * AWS/GOOGLE CLOUD
-
-Security:
-  * Spring Security
-  * KeyCloak
-  * JWT
-  * HTTPS
-  * RateLimiting
-  * Extras (not included for security)
-
-Using Data RT:
-  * Socket.io
-
-Monitoring:
-  * Prometheus
-  * Grafana
-  * ELK Stack
-  * Sentry
+### Monitoring
+- Prometheus
+- Grafana
+- ELK Stack
+- Sentry
