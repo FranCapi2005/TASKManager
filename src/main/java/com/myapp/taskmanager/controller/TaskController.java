@@ -1,0 +1,72 @@
+package com.myapp.taskmanager.controller;
+
+import com.myapp.taskmanager.dto.response.TaskResponseDTO;
+import com.myapp.taskmanager.dto.request.TaskRequestDTO;
+import com.myapp.taskmanager.service.TaskService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController                         // @Controller + @ResponseBody (responde JSON)
+@RequestMapping("/api/v1/tasks")      // prefijo para todas las rutas de este contolador
+public class TaskController {
+
+    private final TaskService taskService;
+
+    @Autowired
+    public TaskController(TaskService taskService){
+        this.taskService = taskService;
+    }
+
+    // GET /api/v1/tasks
+    @GetMapping
+    public ResponseEntity<List<TaskResponseDTO>> getAllTasks(){
+        return ResponseEntity.ok(taskService.getAllTasks());
+        // ResponseEntity = control total sobre la respuesta HTTP (status, headers, body)
+    }
+
+    // GET /api/v1/tasks/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id){
+        return taskService.getTaskById(id)
+                .map(ResponseEntity::ok)                        // si existe -> 200
+                .orElse(ResponseEntity.notFound().build());     // si no -> 404
+    }
+
+    // POST /api/v1/tasks
+    @PostMapping
+    public ResponseEntity<TaskResponseDTO> createTask(
+            @Valid @RequestBody TaskRequestDTO requestDTO
+    ){
+        // @Valid dispara las validaciones de @NotBlank, @Size, etc
+        // Si algo falla, Spring devuelve 400 automaticamente antes de llegar al Service
+        TaskResponseDTO created = taskService.createTask(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
+        /*
+        Task created = taskService.createTask(task);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created); // 201
+        */
+    }
+
+    // PUT /api/v1/tasks/{id}
+    @PutMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask(
+            @PathVariable Long id,
+            @Valid @RequestBody TaskRequestDTO requestDTO) {
+        return taskService.updateTask(id, requestDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        return taskService.deleteTask(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
+}
