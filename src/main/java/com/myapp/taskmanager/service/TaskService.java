@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service // Bean de logica de negocio
@@ -31,9 +30,15 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<TaskResponseDTO> getTaskById(Long id){
+    public TaskResponseDTO getTaskById(Long id){
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+        return toResponseDTO(task);
+
+        /* Esto cuando se usa un "Optional"
         return taskRepository.findById(id)
                 .map(this::toResponseDTO); // si existe, convertí, si no. Optional
+        */
     }
 
     public TaskResponseDTO createTask(TaskRequestDTO requestDTO){
@@ -45,7 +50,18 @@ public class TaskService {
         return toResponseDTO(savedTask); // Entity -> DTO para la respuesta
     }
 
-    public Optional<TaskResponseDTO> updateTask(Long id, TaskRequestDTO requestDTO){
+    public TaskResponseDTO updateTask(Long id, TaskRequestDTO requestDTO){
+        // Si no existe, lanza "TaskNotFoundException" -> handler 404
+        Task existing = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+
+        existing.setTitle(requestDTO.getTitle());
+        existing.setDescription(requestDTO.getDescription());
+        existing.setCompleted(requestDTO.isCompleted());
+
+        return toResponseDTO(taskRepository.save(existing));
+
+        /* Esto cuando se usa un "Optional"
         return taskRepository.findById(id).map(existing -> {
             existing.setTitle(requestDTO.getTitle());
             existing.setDescription(requestDTO.getDescription());
@@ -53,13 +69,13 @@ public class TaskService {
             return toResponseDTO(taskRepository.save(existing));
         });
         // .map() en Optional: si existe, transformalo; si no, retorna Optional.empty()
+        */
     }
 
-    public boolean deleteTask(Long id){
-        return taskRepository.findById(id).map(task -> {
-            taskRepository.deleteById(id);
-            return true;
-        }).orElse(false);
+    public void deleteTask(Long id){
+        taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+        taskRepository.deleteById(id);
     }
 
     // METODOS DE MAPPING PRIVADOS

@@ -18,30 +18,28 @@ public class TaskController {
     private final TaskService taskService;
 
     @Autowired
-    public TaskController(TaskService taskService){
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
     }
 
     // GET /api/v1/tasks
     @GetMapping
-    public ResponseEntity<List<TaskResponseDTO>> getAllTasks(){
+    public ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
         return ResponseEntity.ok(taskService.getAllTasks());
         // ResponseEntity = control total sobre la respuesta HTTP (status, headers, body)
     }
 
     // GET /api/v1/tasks/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id){
-        return taskService.getTaskById(id)
-                .map(ResponseEntity::ok)                        // si existe -> 200
-                .orElse(ResponseEntity.notFound().build());     // si no -> 404
+    public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.getTaskById(id));
     }
 
     // POST /api/v1/tasks
     @PostMapping
     public ResponseEntity<TaskResponseDTO> createTask(
             @Valid @RequestBody TaskRequestDTO requestDTO
-    ){
+    ) {
         // @Valid dispara las validaciones de @NotBlank, @Size, etc
         // Si algo falla, Spring devuelve 400 automaticamente antes de llegar al Service
         TaskResponseDTO created = taskService.createTask(requestDTO);
@@ -65,8 +63,8 @@ public class TaskController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        return taskService.deleteTask(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+        taskService.deleteTask(id);
+        return ResponseEntity.noContent().build(); // 204
+        // si no existe -> misma cadena automatica
     }
 }
