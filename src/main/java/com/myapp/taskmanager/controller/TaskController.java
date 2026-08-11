@@ -9,6 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+
 import java.util.List;
 
 @RestController                         // @Controller + @ResponseBody (responde JSON)
@@ -20,6 +24,15 @@ public class TaskController {
     @Autowired
     public TaskController(TaskService taskService) {
         this.taskService = taskService;
+    }
+
+    // GET /api/v1/tasks/user/1?page=0&size=10&sort=createdAt,desc
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Page<TaskResponseDTO>> getTasksByUser(
+            @PathVariable Long userId,
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+        // Valores por defecto si el cliente no manda los parámetros
+        return ResponseEntity.ok(taskService.getTasksByUser(userId, pageable));
     }
 
     // GET /api/v1/tasks
@@ -56,9 +69,8 @@ public class TaskController {
     public ResponseEntity<TaskResponseDTO> updateTask(
             @PathVariable Long id,
             @Valid @RequestBody TaskRequestDTO requestDTO) {
-        return taskService.updateTask(id, requestDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        TaskResponseDTO updated = taskService.updateTask(id, requestDTO);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")

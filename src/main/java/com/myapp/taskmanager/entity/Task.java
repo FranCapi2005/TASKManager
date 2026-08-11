@@ -45,6 +45,14 @@ public class Task{
     @Column(name = "created_at")        // nombre explicito de la columna
     private LocalDateTime createdAt;
 
+    // Muchas tareas perteneces a un usuario
+    // @ManyToOne: el lado que tiene la foreing key en la tabla
+    // @JoinColumn: nombre de la columna FK en la tabla tasks
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    // Hibernate genera: user_id BIGINT REFERENCES users(id)
+
     // Se ejecuta automaticamente ANTES de persistir (INSERT) pro primera vez en la BD
     @PrePersist
     protected void onCreate(){

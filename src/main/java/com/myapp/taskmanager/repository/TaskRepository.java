@@ -3,11 +3,34 @@ package com.myapp.taskmanager.repository;
 import com.myapp.taskmanager.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
+@Repository
+public interface TaskRepository extends JpaRepository<Task, Long>{
+    // JpaRepository<TipoEntidad, TipoDeLaClavePrimaria>
+    // Spring genera la implementacion completa en tiempo de ejecucion
+    // Ya se tiene gratis: findAll(), findById(), save(), delete(), count(), etc.
+
+    // Se puede agregar queries propias usando convencion de nombres:
+    List<Task> findByCompleted(boolean completed);
+    // Spring lee "findByCompleted" y genera: SELECT * FROM tasks WHERE completed
+
+    List<Task> findByTitleContainingIgnoreCase(String keyboard);
+    // SELECT * FROM tasks WHERE LOWER(title) LIKE LOWER('%keyword%')
+
+    // Todas las tareas especificas de un usuario (con paginacion)
+    Page<Task> findByUserId(Long userId, Pageable pageable);
+
+    // Tareas de un usuario especifico, filtrados por estado
+    Page<Task> findByUserIdAndCompleted(Long userId, boolean completed, Pageable pageable);
+}
 
 /*
 @Repository // Bean de acceso a datos
@@ -44,17 +67,3 @@ public class TaskRepository {
         tasks.removeIf(t -> t.getId().equals(id));
     }
 }*/
-
-@Repository
-public interface TaskRepository extends JpaRepository<Task, Long>{
-    // JpaRepository<TipoEntidad, TipoDeLaClavePrimaria>
-    // Spring genera la implementacion completa en tiempo de ejecucion
-    // Ya se tiene gratis: findAll(), findById(), save(), delete(), count(), etc.
-
-    // Se puede agregar queries propias usando convencion de nombres:
-    List<Task> findByCompleted(boolean completed);
-    // Spring lee "findByCompleted" y genera: SELECT * FROM tasks WHERE completed
-
-    List<Task> findByTitleContainingIgnoreCase(String keyboard);
-    // SELECT * FROM tasks WHERE LOWER(title) LIKE LOWER('%keyword%')
-}

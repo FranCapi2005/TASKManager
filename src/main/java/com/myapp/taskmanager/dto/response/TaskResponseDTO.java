@@ -17,4 +17,6 @@ public class TaskResponseDTO {
     private LocalDateTime createdAt;
     // Notamos que no hay campos internos de auditoria ni datos sensibles
     // Solo lo que el cliente necesita ver
+    private Long userId; // solo el user ID para no mostrar ni renderizar el OBJETO completo
+    private String userName; // Nombre del usuario para mostrarlo en el front
 }

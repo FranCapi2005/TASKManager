@@ -27,9 +27,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    // Captura UserNotFoundException -> 404
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex){
+        ErrorResponse error = new ErrorResponse(
+                404,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     // Captura TaskAlreadyExistsException -> 409 Conflict
     @ExceptionHandler(TaskAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleTaskAlreadyExists(TaskAlreadyExistsException ex){
+        ErrorResponse error = new ErrorResponse(
+                409,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    // Captura UserAlreadyExistsException -> 409 Conflict
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handlerUserAlreadyExists(UserAlreadyExistsException ex){
         ErrorResponse error = new ErrorResponse(
                 409,
                 ex.getMessage(),
