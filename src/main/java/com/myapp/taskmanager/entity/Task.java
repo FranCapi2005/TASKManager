@@ -1,30 +1,17 @@
 package com.myapp.taskmanager.entity;
 
-import lombok.Data;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-//// Lombok genera automaticamente getters, setters, equals, hashCode, toString
-//@Data
-//@NoArgsConstructor               // constructor vacio: Task()
-//@AllArgsConstructor              // constructor completo: Task(id, title, completed)
-//public class Task {
-//    private Long id;
-//    private String title;
-//    private String description;
-//    private boolean completed;
-//}
-//
-
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity                         // "esta clase representa una tabla en la BD"
 @Table(name = "tasks")          // nombre explicito de la tabla
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Task{

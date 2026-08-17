@@ -6,8 +6,9 @@ import com.myapp.taskmanager.entity.Task;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 // componentModel = "spring" -> mapStruct usa spring para generar un @Component
 // Spring lo detecta como Bean e inyectable con @Autowired
 public interface TaskMapper {

@@ -7,7 +7,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.myapp.taskmanager.entity.User;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,11 +31,25 @@ public class TaskController {
 
     // GET /api/v1/tasks/user/1?page=0&size=10&sort=createdAt,desc
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<Page<TaskResponseDTO>> getTasksByUser(
             @PathVariable Long userId,
-            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable,
+            @AuthenticationPrincipal User currentUser
+
+    ) {
+        if(!currentUser.getId().equals(userId)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         // Valores por defecto si el cliente no manda los parámetros
         return ResponseEntity.ok(taskService.getTasksByUser(userId, pageable));
+    }
+
+    // GET /api/v1/tasks/{id}
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @taskSecurityService.isOwner(#id, authentication.principal.id)")
+    public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.getTaskById(id));
     }
 
     // GET /api/v1/tasks
@@ -42,14 +59,9 @@ public class TaskController {
         // ResponseEntity = control total sobre la respuesta HTTP (status, headers, body)
     }
 
-    // GET /api/v1/tasks/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id) {
-        return ResponseEntity.ok(taskService.getTaskById(id));
-    }
-
     // POST /api/v1/tasks
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TaskResponseDTO> createTask(
             @Valid @RequestBody TaskRequestDTO requestDTO
     ) {
@@ -58,14 +70,11 @@ public class TaskController {
         TaskResponseDTO created = taskService.createTask(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
 
-        /*
-        Task created = taskService.createTask(task);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created); // 201
-        */
     }
 
     // PUT /api/v1/tasks/{id}
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @taskSecurityService.isOwner(#id, authentication.principal.id)")
     public ResponseEntity<TaskResponseDTO> updateTask(
             @PathVariable Long id,
             @Valid @RequestBody TaskRequestDTO requestDTO) {
