@@ -10,9 +10,12 @@ import com.myapp.taskmanager.mapper.UserMapper;
 import com.myapp.taskmanager.repository.UserRepository;
 import com.myapp.taskmanager.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder; // BCrypt
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,8 +36,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users")
+    // sin key explicita -> Spring usa los parametros del metodo como key
+    // como no hay parametros -> key = "users::SimpleKey []"
     public List<UserResponseDTO> getAllUsers() {
-        // Hereda "@Transactional(readOnly = true) de la clase, no necesita anotacion
         return userRepository.findAll()
                 .stream()
                 .map(userMapper::toResponseDTO)
@@ -42,6 +47,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "user", key = "#id")
     public UserResponseDTO getUserById(Long id){
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -49,9 +55,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional // Reescribimos la transaccion a modo de uso y no lectura
+    @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public UserResponseDTO createUser(UserRequestDTO requestDTO){
-        // Verificamos que el mail no este usado antes de crear la cuenta
         if(userRepository.existsByEmail(requestDTO.getEmail())){
             throw new EmailAlreadyExistsException(requestDTO.getEmail());
         }
@@ -63,6 +69,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "user", key = "#id"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public UserResponseDTO updateUser(Long id, UserRequestDTO requestDTO){
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -73,6 +83,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "user", key = "#id"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void deleteUser(Long id){
         userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));

@@ -10,7 +10,9 @@ import com.myapp.taskmanager.security.dto.LoginRequestDTO;
 import com.myapp.taskmanager.security.dto.RefreshTokenRequestDTO;
 import com.myapp.taskmanager.security.service.JwtService;
 import com.myapp.taskmanager.security.service.RefreshTokenService;
+import com.myapp.taskmanager.security.service.TokenBlacklistService;
 import com.myapp.taskmanager.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,9 +20,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -30,6 +34,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
@@ -39,12 +44,13 @@ public class AuthController {
                           UserRepository userRepository,
                           JwtService jwtService,
                           RefreshTokenService refreshTokenService,
-                          AuthenticationManager authenticationManager) {
+                          AuthenticationManager authenticationManager, TokenBlacklistService tokenBlacklistService) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.authenticationManager = authenticationManager;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     // POST: /api/v1/auth/register
@@ -108,9 +114,25 @@ public class AuthController {
     // Logout: invalida el refresh token
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
-            @org.springframework.security.core.annotation.AuthenticationPrincipal User currentUser
+            @AuthenticationPrincipal User currentUser,
+            HttpServletRequest request
     ) {
-       refreshTokenService.deleteByUser(currentUser);
-       return ResponseEntity.noContent().build();
+        // Extraemos el token del header
+        String authHeader = request.getHeader("Authorization");
+        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+
+            // traemos el calculo de tiempo del mismo service, debido a que el metodo principal es privado
+            long remainingTime = jwtService.getRemainingTime(token);
+
+            // Si todavia no expiro, lo agregamos a blacklist
+            if(remainingTime > 0){
+                tokenBlacklistService.blackListToken(token, remainingTime);
+            }
+        }
+        // Borramos el refresh token de la BD
+        refreshTokenService.deleteByUser(currentUser);
+
+        return ResponseEntity.noContent().build();
     }
 }

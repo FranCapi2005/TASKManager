@@ -2,6 +2,7 @@ package com.myapp.taskmanager.security.filter;
 
 import com.myapp.taskmanager.repository.UserRepository;
 import com.myapp.taskmanager.security.service.JwtService;
+import com.myapp.taskmanager.security.service.TokenBlacklistService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,11 +25,16 @@ public class JwtAuthFilter extends OncePerRequestFilter{
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Autowired
-    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthFilter(
+            JwtService jwtService,
+            UserDetailsService userDetailsService,
+            TokenBlacklistService tokenBlacklistService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -41,15 +47,32 @@ public class JwtAuthFilter extends OncePerRequestFilter{
         // El token viene en el header "Authorization: Bearer <token>"
         final String authHeader = request.getHeader("Authorization");
 
-        // Si no hay Hedaer o no empieza con "Bearer", lo dejamos pasar sin autenticar
+        // Si no hay Header o no empieza con "Bearer", lo dejamos pasar sin autenticar
         if(authHeader == null || !authHeader.startsWith("Bearer")){
             filterChain.doFilter(request, response); // pasa al siguiente filtro
         }
 
         // Extraer el token removiendo "Bearer..."
         final String jwt = authHeader.substring(7);
-        final String email = jwtService.extractEmail(jwt);
 
+        // Verificamos blacklist ANTES de validar el token
+        // Si esta en BLACKLIST, rechazamos inmediatamente
+        if(tokenBlacklistService.isBlacklisted(jwt)){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                    "{\"status\":401,\"message\":\"Token Invalidated\"}"
+            );
+            return;
+        }
+
+        final String email;
+        try{
+            email = jwtService.extractEmail(jwt);
+        }catch(JwtException e){
+            filterChain.doFilter(request, response);
+            return;
+        }
         // Si hay un email y aun no esta autenticado en este contexto
         if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
             // Buscamos el usuario en la BD

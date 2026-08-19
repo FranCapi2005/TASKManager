@@ -65,6 +65,11 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    public long getRemainingTime(String token) {
+        Date expiration = extractExpiration(token);
+        return expiration.getTime() - System.currentTimeMillis();
+    }
+
     // Extrae cualquier claim del token con una función
     // Claims son los datos guardados dentro del token
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
